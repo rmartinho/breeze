@@ -1,0 +1,14 @@
+# --- configuration ---
+
+projectName = 'untitled'
+
+language = 'c++11'
+ignoredWarnings = [ 'mismatched-tags' ]
+noRebuild = [ '-Wfatal-errors' ]
+
+systemLibs = []
+otherLibs = []
+
+infoFiles = [ 'README.md COPYING.txt' ]
+
+

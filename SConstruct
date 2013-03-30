@@ -1,15 +1,10 @@
-# --- configuration ---
+# --- config ---
 
-projectName = 'untitled'
+import imp
 
-language = 'c++11'
-ignoredWarnings = [ 'mismatched-tags' ]
-noRebuild = [ '-Wfatal-errors' ]
-
-systemLibs = []
-otherLibs = []
-
-infoFiles = Split('README.md COPYING.txt')
+config = imp.new_module('config')
+with open('config', 'r') as file:
+    exec file.read() in config.__dict__
 
 # --- targets ---
 
@@ -26,7 +21,7 @@ def makeTargets(base):
 
 def makeOptions():
     options = Variables()
-    options.Add(EnumVariable('lib', 'library to build', 'static', allowed_values=('static', 'shared')))
+    options.Add(EnumVariable('lib', 'library to build', 'static', allowed_values = ('static', 'shared')))
     options.Add(BoolVariable('fatal', 'stop on first error', True))
     return options
 
@@ -55,13 +50,13 @@ def makeBaseEnvironment(opts):
 
 def setWarnings(env):
     base = Split('-Wall -Wextra -Werror -pedantic-errors')
-    ignored = prefix('-Wno-', ignoredWarnings)
+    ignored = prefix('-Wno-', config.ignoredWarnings)
     fatal = [ '-Wfatal-errors' ] if env['fatal'] else []
     
     env.MergeFlags(base + fatal + ignored)
 
 def setLanguage(env):
-    env.MergeFlags([ '-std=' + language ])
+    env.MergeFlags([ '-std=' + config.language ])
     env['LINK'] = env['CXX']
 
 def setStructure(env):
@@ -69,9 +64,9 @@ def setStructure(env):
     env.Append(LIBPATH = ['lib'])
 
 def setLibs(env):
-    if len(systemLibs) > 0:
-        env.ParseConfig('pkg-config --cflags --libs ' + ' '.join(systemLibs))
-    env.Append(LIBS = otherLibs)
+    if len(config.systemLibs) > 0:
+        env.ParseConfig('pkg-config --cflags --libs ' + ' '.join(config.systemLibs))
+    env.Append(LIBS = config.otherLibs)
 
 def setPlatformMacros(env):
     if env['PLATFORM'] == 'win32':
@@ -105,13 +100,13 @@ def setVersionMacros(env):
     env.Append(CPPDEFINES = projectMacroList(macros))
 
 import os.path
-def cloneLib(base, alias, config):
+def cloneLib(base, alias, cfg):
     env = base.Clone()
-    env['config'] = config
+    env['config'] = cfg
 
-    target = os.path.join(binDir(config), simpleName(projectName))
-    env.VariantDir(objDir(config), '.', duplicate = 0)
-    sources = getObjectTargets('src', config)
+    target = os.path.join(binDir(cfg), simpleName(config.projectName))
+    env.VariantDir(objDir(cfg), '.', duplicate = 0)
+    sources = getObjectTargets('src', cfg)
     if env['lib'] == 'static':
         lib = env.StaticLibrary(target, sources)
     if env['lib'] == 'shared':
@@ -120,8 +115,8 @@ def cloneLib(base, alias, config):
 
     return env
 
-def getObjectTargets(folder, config):
-    return baseFiles(objDir(config), getFiles(folder, '*.c++'))
+def getObjectTargets(folder, cfg):
+    return baseFiles(objDir(cfg), getFiles(folder, '*.c++'))
 
 def makeDebug(base, alias):
     env = cloneLib(base, alias, 'debug')
@@ -138,15 +133,15 @@ def makeRelease(base, alias):
 
 def makeTest(base, alias):
     env = base.Clone()
-    config = env['config']
+    cfg = env['config']
 
-    env.Append(LIBS = simpleName(projectName))
-    env.Append(LIBPATH = binDir(config))
+    env.Append(LIBS = simpleName(config.projectName))
+    env.Append(LIBPATH = binDir(cfg))
 
     env.Append(CPPPATH = [ 'test' ])
 
-    target = os.path.join(binDir(config), 'runtest')
-    sources = getObjectTargets('test', config)
+    target = os.path.join(binDir(cfg), 'runtest')
+    sources = getObjectTargets('test', cfg)
     program = env.Program(target, sources)
     env.AlwaysBuild(env.Alias(alias, [program], target))
 
@@ -168,15 +163,15 @@ def macroPrefix(s):
     return simpleName(s).upper() + '_'
 
 def projectMacroList(macros):
-    return prefix(macroPrefix(projectName), macros)
+    return prefix(macroPrefix(config.projectName), macros)
 
 def baseFiles(base, files):
     return map(lambda e: os.path.join(base, e), files)
 
-def objDir(config):
-    return os.path.join('obj', config)
-def binDir(config):
-    return os.path.join('bin', config)
+def objDir(cfg):
+    return os.path.join('obj', cfg)
+def binDir(cfg):
+    return os.path.join('bin', cfg)
 
 import fnmatch
 def getFiles(root, pattern):
@@ -198,7 +193,7 @@ def avoidRebuilds(flags):
         return cnt_norebuild
     SCons.Action.ActionBase.get_contents = types.MethodType(get_contents, None, SCons.Action.ActionBase)
 
-avoidRebuilds(noRebuild)
+avoidRebuilds(config.noRebuild)
 
 # --- go! go! go! ---
 
