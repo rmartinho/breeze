@@ -61,6 +61,7 @@ def setWarnings(env):
 
 def setLanguage(env):
     env.MergeFlags([ '-std=' + language ])
+    env['LINK'] = env['CXX']
 
 def setStructure(env):
     env.Append(CPPPATH = ['include'])
@@ -109,7 +110,7 @@ def cloneLib(base, alias, config):
 
     target = os.path.join(binDir(config), simpleName(projectName))
     env.VariantDir(objDir(config), '.', duplicate = 0)
-    sources = baseFiles(objDir(config), getFiles('src', '*.c++'))
+    sources = getObjectTargets('src', config)
     if env['lib'] == 'static':
         lib = env.StaticLibrary(target, sources)
     if env['lib'] == 'shared':
@@ -117,6 +118,9 @@ def cloneLib(base, alias, config):
     env.Alias(alias, lib)
 
     return env
+
+def getObjectTargets(folder, config):
+    return baseFiles(objDir(config), getFiles(folder, '*.c++'))
 
 def makeDebug(base, alias):
     env = cloneLib(base, alias, 'debug')
@@ -141,7 +145,7 @@ def makeTest(base, alias):
     env.Append(CPPPATH = [ 'test' ])
 
     target = os.path.join(binDir(config), 'runtest')
-    sources = baseFiles(objDir(config), getFiles('test', '*.c++'));
+    sources = getObjectTargets('test', config)
     program = env.Program(target, sources)
     env.AlwaysBuild(env.Alias(alias, [program], target))
 
@@ -176,10 +180,10 @@ def binDir(config):
 import fnmatch
 def getFiles(root, pattern):
     pattern = fnmatch.translate(pattern)
-    for root, dirs, files in os.walk(root):
+    for dir, dirs, files in os.walk(root):
         for f in files:
             if re.match(pattern, f):
-                yield f
+                yield os.path.join(dir, f)
 
 # --- go! go! go! ---
 
