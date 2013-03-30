@@ -4,6 +4,7 @@ projectName = 'untitled'
 
 language = 'c++11'
 ignoredWarnings = [ 'mismatched-tags' ]
+noRebuild = [ '-Wfatal-errors' ]
 
 systemLibs = []
 otherLibs = []
@@ -184,6 +185,20 @@ def getFiles(root, pattern):
         for f in files:
             if re.match(pattern, f):
                 yield os.path.join(dir, f)
+
+# --- hacks ---
+
+import SCons
+import types
+def avoidRebuilds(flags):
+    SCons.Action.ActionBase.get_contents_orig = SCons.Action.ActionBase.get_contents
+    def get_contents(self, *args, **kw):
+        cnt = self.get_contents_orig(*args, **kw).split()
+        cnt_norebuild = " ".join(f for f in cnt if f not in flags)
+        return cnt_norebuild
+    SCons.Action.ActionBase.get_contents = types.MethodType(get_contents, None, SCons.Action.ActionBase)
+
+avoidRebuilds(noRebuild)
 
 # --- go! go! go! ---
 
