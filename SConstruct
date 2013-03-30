@@ -102,6 +102,7 @@ def setVersionMacros(env):
 
     env.Append(CPPDEFINES = projectMacroList(macros))
 
+import os.path
 def cloneLib(base, alias, config):
     env = base.Clone()
     env['config'] = config
@@ -154,8 +155,8 @@ def prefix(base, items):
 import re
 def simpleName(s):
     s = s.strip()
-    s = re.sub('\s+', '_', s)
-    s = re.sub('[^a-zA-Z0-9]+', '_', s)
+    s = re.sub(r'\s+', '_', s)
+    s = re.sub(r'[^a-zA-Z0-9]+', '_', s)
     return s
 
 def macroPrefix(s):
@@ -172,8 +173,13 @@ def objDir(config):
 def binDir(config):
     return os.path.join('bin', config)
 
+import fnmatch
 def getFiles(root, pattern):
-    return map(str, Glob(os.path.join(root, pattern)))
+    pattern = fnmatch.translate(pattern)
+    for root, dirs, files in os.walk(root):
+        for f in files:
+            if re.match(pattern, f):
+                yield f
 
 # --- go! go! go! ---
 
