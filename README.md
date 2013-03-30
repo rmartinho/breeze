@@ -20,16 +20,11 @@ Some configuration options are available.
 
 - `projectName` is a string used for the build targets and for macro prefixes
 (sanitized as uppercase).
-
 - `language` specifies the language level used with GCC's `-std=` setting.
-
 - `ignoredWarnings` is a list of GCC warnings to ignore (without any prefixes).
-
 - `noRebuild` is a list of GCC flags that should not cause a rebuild when they
 change.
-
 - `systemLibs` is a list of libraries to be passed to `pkg-config` for
 obtaining compilation flags.
-
 - `otherLibs` is a list of libraries to link directly.
 
