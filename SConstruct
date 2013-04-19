@@ -52,7 +52,7 @@ def setWarnings(env):
     base = Split('-Wall -Wextra -Werror -pedantic-errors')
     ignored = prefix('-Wno-', config.ignoredWarnings)
     fatal = [ '-Wfatal-errors' ] if env['fatal'] else []
-    
+
     env.MergeFlags(base + fatal + ignored)
 
 def setLanguage(env):
@@ -62,6 +62,8 @@ def setLanguage(env):
 def setStructure(env):
     env.Append(CPPPATH = ['include'])
     env.Append(LIBPATH = ['lib'])
+    system_headers = prefix('-isystem', config.systemHeaderPaths)
+    env.MergeFlags(system_headers)
 
 def setLibs(env):
     if len(config.systemLibs) > 0:

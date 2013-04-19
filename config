@@ -9,6 +9,8 @@ noRebuild = [ '-Wfatal-errors' ]
 systemLibs = []
 otherLibs = []
 
+systemHeaderPaths = []
+
 infoFiles = [ 'README.md COPYING.txt' ]
 
 
