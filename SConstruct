@@ -35,6 +35,14 @@ def makeBaseEnvironment(opts):
 
     Help(opts.GenerateHelpText(env))
 
+    # Pass termcaps along for colours and fancies
+    if 'TERM' in os.environ:
+        env['ENV']['TERM'] = os.environ['TERM']
+
+    # Set compiler from environment
+    if 'CXX' in os.environ:
+        env['CXX'] = os.environ['CXX']
+
     setWarnings(env)
     setLanguage(env)
 
